@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: event-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ticket_db
+    username: admin
+    password: password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer: # Kafka consumer ayarlar? (Listener i?in kullan?lacak)
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      group-id: event-service-group # Compensation listener i?in bir group-id
+      auto-offset-reset: earliest # Ba?lang?çta okunacak offset (test için faydal?)
+
+server:
+  port: 8081
+
+# Özel Kafka topic tan?mlar?
+kafka:
+  topics:
+    reservation-initiation: reservation-initiation-topic
+    reservation-failure: reservation-failure-topic # Compensation için
+  enabled: true # Kafka konfigürasyonunu etkinle?tir/devre d??? b?rak
