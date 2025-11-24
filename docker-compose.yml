@@ -1,9 +1,8 @@
 version: '3.8'
 
 services:
-  # -----------------------------------
-  # 1. EVENT SERVICE DB (Sadece Event için)
-  # -----------------------------------
+  #  EVENT SERVICE DB
+
   event-db:
     image: postgres:15-alpine
     container_name: ticket-event-db
@@ -16,9 +15,9 @@ services:
     volumes:
       - event_db_data:/var/lib/postgresql/data
 
-  # -----------------------------------
-  # 2. PAYMENT SERVICE DB (Sadece Payment için)
-  # -----------------------------------
+
+  # PAYMENT SERVICE DB
+
   payment-db:
     image: postgres:15-alpine
     container_name: ticket-payment-db
@@ -31,10 +30,10 @@ services:
     volumes:
       - payment_db_data:/var/lib/postgresql/data
 
-  # -----------------------------------
-  # 3. EVENT SERVICE (Backend)
-  # -----------------------------------
+  # EVENT SERVICE (Backend)
+
   event-service:
+    profiles: ["app"]
     build: ./event-service
     container_name: ticket-event-service
     ports:
@@ -50,10 +49,10 @@ services:
       - kafka
       - redis
 
-  # -----------------------------------
-  # 4. PAYMENT SERVICE (Backend)
-  # -----------------------------------
+  # PAYMENT SERVICE (Backend)
+
   payment-service:
+    profiles: ["app"]
     build: ./payment-service
     container_name: ticket-payment-service
     ports:
@@ -67,9 +66,8 @@ services:
       - payment-db
       - kafka
 
-  # -----------------------------------
-  # 5. ORTAK ALTYAPI (Redis, Kafka, Zookeeper)
-  # -----------------------------------
+  # ORTAK ALTYAPI (Redis, Kafka, Zookeeper)
+
   redis:
     image: redis:alpine
     container_name: ticket-redis
