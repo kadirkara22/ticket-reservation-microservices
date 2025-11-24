@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  # -----------------------------------
+  # 1. EVENT SERVICE DB (Sadece Event için)
+  # -----------------------------------
+  event-db:
+    image: postgres:15-alpine
+    container_name: ticket-event-db
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=ticket_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - event_db_data:/var/lib/postgresql/data
+
+  # -----------------------------------
+  # 2. PAYMENT SERVICE DB (Sadece Payment için)
+  # -----------------------------------
+  payment-db:
+    image: postgres:15-alpine
+    container_name: ticket-payment-db
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=payment_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - payment_db_data:/var/lib/postgresql/data
+
+  # -----------------------------------
+  # 3. EVENT SERVICE (Backend)
+  # -----------------------------------
+  event-service:
+    build: ./event-service
+    container_name: ticket-event-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://event-db:5432/ticket_db
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - SPRING_DATA_REDIS_HOST=redis
+    depends_on:
+      - event-db
+      - kafka
+      - redis
+
+  # -----------------------------------
+  # 4. PAYMENT SERVICE (Backend)
+  # -----------------------------------
+  payment-service:
+    build: ./payment-service
+    container_name: ticket-payment-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://payment-db:5432/payment_db
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+    depends_on:
+      - payment-db
+      - kafka
+
+  # -----------------------------------
+  # 5. ORTAK ALTYAPI (Redis, Kafka, Zookeeper)
+  # -----------------------------------
+  redis:
+    image: redis:alpine
+    container_name: ticket-redis
+    ports:
+      - "6379:6379"
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.2
+    container_name: ticket-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.2
+    container_name: ticket-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+volumes:
+  event_db_data:
+  payment_db_data:
