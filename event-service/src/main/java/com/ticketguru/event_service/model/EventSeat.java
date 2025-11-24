@@ -32,6 +32,9 @@ public class EventSeat {
 
     private BigDecimal price;
 
+    @Column(name = "user_id")
+    private Long userId;
+
     @Column(name = "lock_time")
     private LocalDateTime lockTime;
 
@@ -40,4 +43,14 @@ public class EventSeat {
     // İlk güncelleyen kazanır, diğeri hata alır.
     @Version
     private Long version;
+
+
+    @Override
+    public String toString() {
+        return "EventSeat{" +
+                "id=" + id +
+                ", seatNumber='" + seatNumber + '\'' +
+                ", status='" + status + '\'' +
+                '}';
+    }
 }

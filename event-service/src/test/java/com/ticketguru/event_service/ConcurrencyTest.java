@@ -13,7 +13,7 @@ public class ConcurrencyTest {
     public static void main(String[] args) throws InterruptedException {
         // Hedef: ID'si 1 olan koltuğu almaya çalışacağız
         // NOT: Testi çalıştırmadan önce veritabanını sıfırla veya uygulamanı yeniden başlat ki koltuk "AVAILABLE" olsun.
-        String url = "http://localhost:8081/api/events/seats/8/reserve";
+        String url = "http://localhost:8081/api/events/seats/81/reserve";
 
         int numberOfThreads = 20; // Aynı anda saldıracak kullanıcı sayısı
         ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
@@ -27,7 +27,7 @@ public class ConcurrencyTest {
                     HttpClient client = HttpClient.newHttpClient();
                     HttpRequest request = HttpRequest.newBuilder()
                             .uri(URI.create(url + "?userId=" + userId))
-                            .POST(HttpRequest.BodyPublishers.noBody()) // POST isteği
+                            .POST(HttpRequest.BodyPublishers.noBody())
                             .build();
 
                     HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());

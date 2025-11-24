@@ -1,20 +1,19 @@
-package com.ticketguru.event_service.config;
+package com.ticketguru.payment_service.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.annotation.EnableKafka;
 
+@EnableKafka
 @Configuration
-public class AppConfig {
+public class KafkaConfig {
 
     @Bean
     public ObjectMapper objectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-
-
-        mapper.registerModule(new JavaTimeModule());
-
-        return mapper;
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        return objectMapper;
     }
 }

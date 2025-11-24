@@ -2,7 +2,7 @@ package com.ticketguru.event_service.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ticketguru.event_service.dto.SeatReservedEvent;
+import com.ticketguru.event_service.event.SeatReservedEvent;
 import lombok.RequiredArgsConstructor; // Lombok'u ekleyin
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,24 +18,24 @@ import java.util.concurrent.ExecutionException; // .get() için
 public class KafkaProducerService {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
-    private final ObjectMapper objectMapper; // Spring Boot bu bean'i otomatik yarat?r
+    private final ObjectMapper objectMapper;
 
     @Value("${kafka.topics.reservation-initiation}")
     private String topicName;
 
     public void sendSeatReservedEvent(SeatReservedEvent event) {
         try {
-            String message = objectMapper.writeValueAsString(event); // DTO'yu JSON'a çevir
+            String message = objectMapper.writeValueAsString(event);
 
-            // Senkron gönderim ile hatay? yakalama (Test amaçl?)
-            kafkaTemplate.send(topicName, event.getSeatId().toString(), message).get();
 
-            log.info("Kafka'ya BAŞARILI GÖNDERİM: Topic={}, SeatId={}, Payload={}", topicName, event.getSeatId(), message);
+            kafkaTemplate.send(topicName, event.getSeatNumber(), message).get();
+
+            log.info("Kafka'ya BAŞARILI GÖNDERİM: Topic={}, SeatNumber={}, Payload={}", topicName, event.getSeatNumber(), message);
 
         } catch (JsonProcessingException e) {
             log.error("Event nesnesi JSON'a çevrilirken hata: {}", event, e);
         } catch (InterruptedException | ExecutionException e) {
-            log.error("KAFKA GÖNDERİM HATASI: Mesaj gönderilemedi!", e); // Hata logunu takip edin!
+            log.error("KAFKA GÖNDERİM HATASI: Mesaj gönderilemedi!", e);
         }
     }
 }

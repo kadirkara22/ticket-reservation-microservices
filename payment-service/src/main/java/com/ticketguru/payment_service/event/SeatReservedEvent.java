@@ -1,16 +1,19 @@
-package com.ticketguru.event_service.dto;
+package com.ticketguru.payment_service.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class SeatReservedEvent {
-    private Long seatId;
-    private Long eventId;
+    private String eventId;
     private Long userId;
+    private String seatNumber;
+    private LocalDateTime reservationTime;
+    private Double price;
     private LocalDateTime timestamp;
 }

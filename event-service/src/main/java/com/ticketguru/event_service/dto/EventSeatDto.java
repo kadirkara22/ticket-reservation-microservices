@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @Builder
 public class EventSeatDto {
     private Long id;
-    private Long eventId;      // Komple Event nesnesi yerine sadece ID
+    private Long eventId;
     private String seatNumber;
     private SeatStatus status;
     private BigDecimal price;
