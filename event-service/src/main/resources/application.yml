@@ -40,3 +40,8 @@ kafka:
     payment-success: payment-success-topic
     payment-failure: payment-failure-topic
   enabled: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/

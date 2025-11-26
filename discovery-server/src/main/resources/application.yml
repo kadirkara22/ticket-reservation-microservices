@@ -1,0 +1,11 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: discovery-server
+
+eureka:
+  client:
+    register-with-eureka: false # Kendini rehbere kaydetme (Sen zaten rehbersin)
+    fetch-registry: false       # Listeyi indirme (Liste sende)
