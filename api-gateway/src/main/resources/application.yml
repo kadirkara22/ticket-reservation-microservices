@@ -11,22 +11,46 @@ spring:
           enabled: true
           lower-case-service-id: true
 
+
       routes:
-        # 1. Event Service
+        # 1. USER SERVICE (GÜVENLİK YOK - HERKES GİREBİLİR)
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - RewritePath=/api/users/(?<segment>.*), /$\{segment}
+            - name: CircuitBreaker
+              args:
+                name: userService
+                fallbackUri: forward:/fallback/user
+
+        # 2. EVENT SERVICE (KİLİTLİ - TOKEN LAZIM!)
         - id: event-service
           uri: lb://EVENT-SERVICE
           predicates:
-            - Path=/api/events/**    # Dışarıdan "/api/events" diye gelir
+            - Path=/api/events/**
           filters:
-            - RewritePath=/api/(?<segment>.*), /$\{segment} # İçeriye "/api" kısmını SİLEREK gönder
+            - AuthenticationFilter
+            - RewritePath=/api/(?<segment>.*), /$\{segment}
+            - name: CircuitBreaker
+              args:
+                name: eventService
+                fallbackUri: forward:/fallback/event
 
-        # 2. Payment Service
+        # 3. PAYMENT SERVICE (KİLİTLİ)
         - id: payment-service
           uri: lb://PAYMENT-SERVICE
           predicates:
             - Path=/api/payments/**
           filters:
+            - AuthenticationFilter
             - RewritePath=/api/(?<segment>.*), /$\{segment}
+            - name: CircuitBreaker
+              args:
+                name: paymentService
+                fallbackUri: forward:/fallback/payment
+
 
         # 3. Notification Service
         - id: notification-service
@@ -40,3 +64,55 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default: # Tüm servisler için varsayılan ayar
+        registerHealthIndicator: true # Actuator /health endpoint'inde durumu göster
+
+        # 1. Kayan Pencere (Sliding Window)
+        slidingWindowType: COUNT_BASED # Son X isteğe bak (TIME_BASED de olabilir)
+        slidingWindowSize: 10 # Son 10 isteği analiz et
+
+        # 2. Hata Eşiği (Threshold)
+        failureRateThreshold: 50 # %50 hata alırsak (10 isteğin 5'i patlarsa) sigortayı attır
+
+        # 3. Yavaşlık Eşiği (Slow Call)
+        slowCallRateThreshold: 50 # İsteklerin %50'si yavaşsa da sigortayı attır
+        slowCallDurationThreshold: 2s # 2 saniyeden uzun süren istek "yavaş" sayılır
+
+        # 4. Bekleme ve Test Süreçleri
+        waitDurationInOpenState: 10s # OPEN durumuna geçince 10 saniye bekle (Servise nefes aldır)
+        permittedNumberOfCallsInHalfOpenState: 3 # 10 sn sonra, HALF-OPEN modunda 3 deneme isteği at
+
+        # 5. Otomatik Geçiş
+        automaticTransitionFromOpenToHalfOpenEnabled: true # Süre dolunca otomatik HALF-OPEN ol
+
+    instances:
+      eventService:
+        baseConfig: default # Yukarıdaki default ayarları kullan
+      paymentService:
+        baseConfig: default
+      userService:
+        baseConfig: default
+
+  # ZAMAN AŞIMI AYARLARI (TimeLimiter)
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 3s # Bir servis 3 saniye cevap vermezse kesip at (Timeout Exception)
+
+# Actuator 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, circuitbreakers # Circuit Breaker durumunu görmek istiyoruz
+  health:
+    circuitbreakers:
+      enabled: true # Sağlık kontrolünde detay göster
+  endpoint:
+    health:
+      show-details: always

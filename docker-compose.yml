@@ -30,6 +30,19 @@ services:
     volumes:
       - payment_db_data:/var/lib/postgresql/data
 
+  user-db:
+    image: postgres:15
+    container_name: ticket-user-db
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=user_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - user_db_data:/var/lib/postgresql/data
+
+
   # EVENT SERVICE (Backend)
 
   event-service:
@@ -101,3 +114,4 @@ services:
 volumes:
   event_db_data:
   payment_db_data:
+  user_db_data:

@@ -4,6 +4,20 @@ server:
 spring:
   application:
     name: notification-service
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: kadirkar2204@gmail.com
+    password: mtit dmaa jyit gvow
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+
   kafka:
     consumer:
       bootstrap-servers: localhost:9092
@@ -24,3 +38,6 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+  instance:
+    hostname: localhost
+    prefer-ip-address: false
