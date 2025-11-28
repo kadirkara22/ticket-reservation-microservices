@@ -4,13 +4,14 @@ server:
 spring:
   application:
     name: api-gateway
+  reactor:
+    context-propagation: auto
   cloud:
     gateway:
       discovery:
         locator:
           enabled: true
           lower-case-service-id: true
-
 
       routes:
         # 1. USER SERVICE (GÜVENLİK YOK - HERKES GİREBİLİR)
@@ -109,10 +110,25 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, info, metrics, circuitbreakers # Circuit Breaker durumunu görmek istiyoruz
+        include: health, info, metrics, circuitbreakers,prometheus
   health:
     circuitbreakers:
-      enabled: true # Sağlık kontrolünde detay göster
+      enabled: true
   endpoint:
     health:
       show-details: always
+  tracing:
+    sampling:
+      probability: 1.0
+    propagation:
+      type: "w3c,b3"
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+
+
+

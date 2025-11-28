@@ -1,5 +1,6 @@
     package com.ticketguru.event_service.service;
 
+    import com.ticketguru.event_service.client.UserServiceClient;
     import com.ticketguru.event_service.dto.EventSeatDto;
     import com.ticketguru.event_service.event.SeatReservedEvent;
     import com.ticketguru.event_service.mapper.SeatMapper;
@@ -27,6 +28,7 @@
         private final SeatMapper seatMapper;
         private final RedisLockService redisLockService;
         private final KafkaProducerService kafkaProducerService;
+        private final UserServiceClient userServiceClient;
 
 
 
@@ -39,6 +41,13 @@
 
         @Transactional
         public String reserveSeat(Long eventSeatDatabaseId, Long userId) {
+            log.info("📢 HTTP İsteği Geldi! Trace ID Kontrolü yapılıyor...");
+            try {
+                userServiceClient.validateUser(userId);
+            } catch (Exception e) {
+                throw new RuntimeException("Geçersiz Kullanıcı ID! Böyle bir kullanıcı sistemde kayıtlı değil.");
+            }
+
             // 1. Koltuğu Bul
             EventSeat seat = seatRepository.findById(eventSeatDatabaseId)
                     .orElseThrow(() -> new RuntimeException("Koltuk bulunamadı! ID: " + eventSeatDatabaseId));

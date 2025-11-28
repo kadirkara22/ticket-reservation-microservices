@@ -14,6 +14,8 @@ services:
       - "5432:5432"
     volumes:
       - event_db_data:/var/lib/postgresql/data
+    networks:
+      - ticket-network
 
 
   # PAYMENT SERVICE DB
@@ -29,6 +31,8 @@ services:
       - "5433:5432"
     volumes:
       - payment_db_data:/var/lib/postgresql/data
+    networks:
+      - ticket-network
 
   user-db:
     image: postgres:15
@@ -41,6 +45,8 @@ services:
       - "5434:5432"
     volumes:
       - user_db_data:/var/lib/postgresql/data
+    networks:
+      - ticket-network
 
 
   # EVENT SERVICE (Backend)
@@ -61,6 +67,8 @@ services:
       - event-db
       - kafka
       - redis
+    networks:
+      - ticket-network
 
   # PAYMENT SERVICE (Backend)
 
@@ -78,6 +86,8 @@ services:
     depends_on:
       - payment-db
       - kafka
+    networks:
+      - ticket-network
 
   # ORTAK ALTYAPI (Redis, Kafka, Zookeeper)
 
@@ -86,6 +96,8 @@ services:
     container_name: ticket-redis
     ports:
       - "6379:6379"
+    networks:
+      - ticket-network
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.3.2
@@ -95,6 +107,8 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
+    networks:
+      - ticket-network
 
   kafka:
     image: confluentinc/cp-kafka:7.3.2
@@ -110,8 +124,22 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - ticket-network
+
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: ticket-zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - ticket-network
 
 volumes:
   event_db_data:
   payment_db_data:
   user_db_data:
+
+networks:
+  ticket-network:
+    driver: bridge
