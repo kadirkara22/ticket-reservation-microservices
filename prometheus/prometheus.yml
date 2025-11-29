@@ -1,0 +1,25 @@
+global:
+  scrape_interval: 5s # Production'da genelde 15s veya 30s olur, test için 5s yapıyoruz (Anlık görelim)
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: 'ticket-booking-services'
+    metrics_path: '/actuator/prometheus' # Spring Boot'un açtığı standart metrics kapısı
+    static_configs:
+      # host.docker.internal: Docker'ın içinden senin bilgisayarına (localhost) ulaşmasını sağlar.
+      # Çünkü Java uygulamaların Docker'da değil, IntelliJ'de (Localhost'ta) çalışıyor.
+      - targets: ['host.docker.internal:8080']
+        labels:
+          application: 'api-gateway'
+      - targets: ['host.docker.internal:8081']
+        labels:
+          application: 'event-service'
+      - targets: ['host.docker.internal:8082']
+        labels:
+          application: 'payment-service'
+      - targets: ['host.docker.internal:8083']
+        labels:
+          application: 'notification-service'
+      - targets: ['host.docker.internal:8084']
+        labels:
+          application: 'user-service'

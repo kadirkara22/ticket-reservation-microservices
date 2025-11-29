@@ -1,2 +1,4 @@
-com/ticketguru/notificationservice/NotificationServiceApplication.class
+com/ticketguru/notificationservice/client/UserServiceClient.class
 com/ticketguru/notificationservice/NotificationListener.class
+com/ticketguru/notificationservice/NotificationServiceApplication.class
+com/ticketguru/notificationservice/dto/UserDto.class

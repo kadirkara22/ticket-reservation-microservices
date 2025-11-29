@@ -1,0 +1,302 @@
+# ==========================
+# 1. EVENT DB (KALICI)
+# ==========================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: event-db-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi # 500 MB yer ayır
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-db
+spec:
+  selector:
+    matchLabels:
+      app: event-db
+  template:
+    metadata:
+      labels:
+        app: event-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          env:
+            - name: POSTGRES_DB
+              value: ticket_db
+            - name: POSTGRES_USER
+              value: admin
+            - name: POSTGRES_PASSWORD
+              value: password
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data # Postgres veriyi buraya yazar
+              name: postgres-storage
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: event-db-pvc # Yukarıdaki diski kullan
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: event-db
+spec:
+  selector:
+    app: event-db
+  ports:
+    - port: 5432
+      targetPort: 5432
+
+---
+# ==========================
+# 2. PAYMENT DB (KALICI)
+# ==========================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: payment-db-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-db
+spec:
+  selector:
+    matchLabels:
+      app: payment-db
+  template:
+    metadata:
+      labels:
+        app: payment-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          env:
+            - name: POSTGRES_DB
+              value: payment_db
+            - name: POSTGRES_USER
+              value: admin
+            - name: POSTGRES_PASSWORD
+              value: password
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-storage
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: payment-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-db
+spec:
+  selector:
+    app: payment-db
+  ports:
+    - port: 5432
+      targetPort: 5432
+
+---
+# ==========================
+# 3. USER DB (KALICI)
+# ==========================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: user-db-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-db
+spec:
+  selector:
+    matchLabels:
+      app: user-db
+  template:
+    metadata:
+      labels:
+        app: user-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          env:
+            - name: POSTGRES_DB
+              value: user_db
+            - name: POSTGRES_USER
+              value: admin
+            - name: POSTGRES_PASSWORD
+              value: password
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-storage
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: user-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-db
+spec:
+  selector:
+    app: user-db
+  ports:
+    - port: 5432
+      targetPort: 5432
+
+---
+# -------------------
+# 4. REDIS (Önbellek olduğu için kalıcı olmasına gerek yok ama eklenebilir)
+# -------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:alpine
+          ports:
+            - containerPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+
+---
+# -------------------
+# 5. ZOOKEEPER
+# -------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zookeeper
+spec:
+  selector:
+    matchLabels:
+      app: zookeeper
+  template:
+    metadata:
+      labels:
+        app: zookeeper
+    spec:
+      containers:
+        - name: zookeeper
+          image: confluentinc/cp-zookeeper:7.3.2
+          env:
+            - name: ZOOKEEPER_CLIENT_PORT
+              value: "2181"
+            - name: ZOOKEEPER_TICK_TIME
+              value: "2000"
+          ports:
+            - containerPort: 2181
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper
+spec:
+  selector:
+    app: zookeeper
+  ports:
+    - port: 2181
+      targetPort: 2181
+
+---
+# -------------------
+# 6. KAFKA (Düzeltilmiş - K8s Uyumlu)
+# -------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: kafka
+          image: confluentinc/cp-kafka:7.3.2
+          ports:
+            - containerPort: 9092
+          env:
+            - name: KAFKA_BROKER_ID
+              value: "1"
+            - name: KAFKA_ZOOKEEPER_CONNECT
+              value: "zookeeper:2181" # K8s Service ismi:Port
+            - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+              value: "PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT"
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: "PLAINTEXT://kafka:9092,PLAINTEXT_INTERNAL://localhost:29092"
+            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
+              value: "1"
+            - name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
+              value: "1"
+            # Minikube için hayati RAM ayarı
+            - name: KAFKA_HEAP_OPTS
+              value: "-Xmx512M -Xms512M"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka # Java uygulamaları bu ismi kullanacak
+spec:
+  selector:
+    app: kafka
+  ports:
+    - port: 9092
+      targetPort: 9092

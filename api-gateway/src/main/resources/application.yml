@@ -14,57 +14,40 @@ spring:
           lower-case-service-id: true
 
       routes:
-        # 1. USER SERVICE (GÜVENLİK YOK - HERKES GİREBİLİR)
+        # 1. USER SERVICE (BASİT YÖNTEM)
         - id: user-service
           uri: lb://USER-SERVICE
           predicates:
-            - Path=/api/users/**
+            # DİKKAT: Artık "/users/**" diye bekliyoruz (/api yok)
+            - Path=/users/**
           filters:
-            - RewritePath=/api/users/(?<segment>.*), /$\{segment}
-            - name: CircuitBreaker
-              args:
-                name: userService
-                fallbackUri: forward:/fallback/user
+            - StripPrefix=1 # "/users" kısmını siler, gerisini gönderir
+            # Circuit Breaker şimdilik kapalı kalsın (kafa karıştırmasın)
 
-        # 2. EVENT SERVICE (KİLİTLİ - TOKEN LAZIM!)
+        # 2. EVENT SERVICE
         - id: event-service
           uri: lb://EVENT-SERVICE
           predicates:
-            - Path=/api/events/**
+            - Path=/events/**
           filters:
             - AuthenticationFilter
-            - RewritePath=/api/(?<segment>.*), /$\{segment}
-            - name: CircuitBreaker
-              args:
-                name: eventService
-                fallbackUri: forward:/fallback/event
+#            - StripPrefix=1
 
-        # 3. PAYMENT SERVICE (KİLİTLİ)
+        # 3. PAYMENT SERVICE
         - id: payment-service
           uri: lb://PAYMENT-SERVICE
           predicates:
-            - Path=/api/payments/**
+            - Path=/payments/**
           filters:
             - AuthenticationFilter
-            - RewritePath=/api/(?<segment>.*), /$\{segment}
-            - name: CircuitBreaker
-              args:
-                name: paymentService
-                fallbackUri: forward:/fallback/payment
-
-
-        # 3. Notification Service
-        - id: notification-service
-          uri: lb://NOTIFICATION-SERVICE
-          predicates:
-            - Path=/api/notifications/**
-          filters:
-            - RewritePath=/api/(?<segment>.*), /$\{segment}
+#            - StripPrefix=1
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://discovery-server:8761/eureka/
+  instance:
+    prefer-ip-address: true
 
 
 resilience4j:
@@ -107,10 +90,12 @@ resilience4j:
 
 # Actuator 
 management:
+  server:
+    port: 9090
   endpoints:
     web:
       exposure:
-        include: health, info, metrics, circuitbreakers,prometheus
+        include: health, info, metrics, prometheus, circuitbreakers
   health:
     circuitbreakers:
       enabled: true
@@ -125,10 +110,18 @@ management:
   zipkin:
     tracing:
       endpoint: http://localhost:9411/api/v2/spans
+  observations:
+    http:
+      server:
+        requests:
+          ignore-patterns: "/actuator/**"
 
 logging:
   pattern:
     level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+
+
+
 
 
 

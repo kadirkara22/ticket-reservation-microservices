@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: kadirkara22/ticket-api-gateway:v1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+            - containerPort: 9090
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1024Mi"
+              cpu: "1000m"
+          env:
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://discovery-server:8761/eureka/"
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka:9092"
+---
+# EXTERNAL SERVICE (Dışarıya Açık)
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+spec:
+  type: LoadBalancer # <--- KİLİT NOKTA: Dışarıdan erişim sağlar
+  selector:
+    app: api-gateway
+  ports:
+    - port: 80
+      targetPort: 8080
+      name: http
+    - port: 9090      # <--- Prometheus için bu portu da açıyoruz (Cluster içine)
+      targetPort: 9090
+      name: management

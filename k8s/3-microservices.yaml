@@ -1,0 +1,180 @@
+# -----------------------------
+# 1. USER SERVICE
+# -----------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+        - name: user-service
+          image: kadirkara22/ticket-user-service:v1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8084
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://user-db:5432/user_db" # K8s Service Name
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "admin"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "password"
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://discovery-server:8761/eureka/"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+spec:
+  selector:
+    app: user-service
+  ports:
+    - port: 8084
+      targetPort: 8084
+
+---
+# -----------------------------
+# 2. EVENT SERVICE
+# -----------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-service
+spec:
+  replicas: 1 # İleride bunu 3 yapacağız (Scaling)
+  selector:
+    matchLabels:
+      app: event-service
+  template:
+    metadata:
+      labels:
+        app: event-service
+    spec:
+      containers:
+        - name: event-service
+          image: kadirkara22/ticket-event-service:v1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8081
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://event-db:5432/ticket_db"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "admin"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "password"
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka:9092"
+            - name: SPRING_DATA_REDIS_HOST
+              value: "redis" # Redis Service Name
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://discovery-server:8761/eureka/"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: event-service
+spec:
+  selector:
+    app: event-service
+  ports:
+    - port: 8081
+      targetPort: 8081
+
+---
+# -----------------------------
+# 3. PAYMENT SERVICE
+# -----------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payment-service
+  template:
+    metadata:
+      labels:
+        app: payment-service
+    spec:
+      containers:
+        - name: payment-service
+          image: kadirkara22/ticket-payment-service:v1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8082
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://payment-db:5432/payment_db"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "admin"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "password"
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka:9092"
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://discovery-server:8761/eureka/"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service
+spec:
+  selector:
+    app: payment-service
+  ports:
+    - port: 8082
+      targetPort: 8082
+
+---
+# -----------------------------
+# 4. NOTIFICATION SERVICE
+# -----------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      containers:
+        - name: notification-service
+          image: kadirkara22/ticket-notification-service:v1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8083
+          env:
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka:9092"
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://discovery-server:8761/eureka/"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+spec:
+  selector:
+    app: notification-service
+  ports:
+    - port: 8083
+      targetPort: 8083
