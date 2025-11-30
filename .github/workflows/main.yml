@@ -1,0 +1,58 @@
+name: CI/CD Pipeline - Build & Push
+
+# Tetikleyici: Main branch'e "push" yapıldığında çalış
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: # Manuel çalıştırma butonu ekler
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # İşlem yapılacak servislerin listesi
+        service: [
+          api-gateway,
+          discovery-server,
+          user-service,
+          event-service,
+          payment-service,
+          notification-service
+        ]
+
+    steps:
+      # 1. Kodu Çek
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 2. Java 21 Ortamını Kur
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven' # Maven bağımlılıklarını önbelleğe al (Hız için)
+
+      # 3. Projeyi Derle (JAR oluştur)
+      - name: Build with Maven
+        run: |
+          cd ${{ matrix.service }}
+          mvn clean package -DskipTests
+
+      # 4. Docker Hub'a Giriş Yap (Secrets kullanır)
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # 5. Docker İmajını Oluştur ve Gönder
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.service }}
+          file: ./${{ matrix.service }}/Dockerfile
+          push: true
+          # İmaj etiketi: kullanıcı_adi/servis_adi:v1 (İleride v2, v3 diye artırılabilir)
+          tags: ${{ secrets.DOCKER_USERNAME }}/ticket-${{ matrix.service }}:v1
