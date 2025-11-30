@@ -40,3 +40,79 @@ graph TD
         Grafana -->|Visualize| Prometheus
         Zipkin -->|Distributed Tracing| Gateway & EventSvc
     end
+
+🚀 Key Features & Patterns
+Feature	Technology / Pattern	Description
+Service Discovery	Netflix Eureka	Dynamic service registration and discovery.
+API Gateway	Spring Cloud Gateway	Centralized entry point, routing, and rate limiting.
+Authentication	JWT & Spring Security	Stateless security mechanism protecting internal services.
+Event-Driven	Apache Kafka	Asynchronous communication between services.
+Concurrency Control	Redis Distributed Lock	Prevents double-booking of the same seat.
+Resilience	Resilience4j	Circuit Breaker pattern to handle service failures gracefully.
+Data Consistency	SAGA Pattern (Choreography)	Handles distributed transactions (Compensating transactions on failure).
+Observability	Prometheus & Grafana	Real-time metrics monitoring and visualization.
+Tracing	Zipkin & Micrometer	Distributed tracing to debug latency and flow issues.
+Containerization	Docker	Fully containerized environment for all services.
+Orchestration	Kubernetes (Minikube)	Deployment, scaling, and management of containers.
+CI/CD	GitHub Actions	Automated build, test, and deploy pipeline to Docker Hub.
+🛠️ Tech Stack
+Backend: Java 21, Spring Boot 3, Spring Cloud
+Databases: PostgreSQL (x3), Redis
+Messaging: Apache Kafka, Zookeeper
+DevOps: Docker, Kubernetes, GitHub Actions
+Monitoring: Prometheus, Grafana, Zipkin
+⚙️ Installation & Running
+Prerequisites
+Docker Desktop
+Kubernetes (Minikube)
+Java 21 (Optional for local dev)
+Maven
+Option 1: Run with Kubernetes (Recommended)
+Start Minikube:
+code
+Bash
+minikube start --driver=docker --memory=6144 --cpus=4
+Create Secrets (Required for Email):
+code
+Bash
+kubectl create secret generic mail-credentials \
+  --from-literal=mail-username='your-email@gmail.com' \
+  --from-literal=mail-password='your-app-password'
+Deploy System:
+code
+Bash
+kubectl apply -f k8s/
+Expose Gateway:
+code
+Bash
+sudo minikube tunnel
+Option 2: Run with Docker Compose (Local Dev)
+code
+Bash
+docker-compose up -d
+📡 API Endpoints
+Base URL: http://localhost (via Kubernetes Gateway)
+1. User Service (Auth)
+Register: POST /users/auth/register
+code
+JSON
+{ "username": "user", "email": "user@test.com", "password": "password" }
+Login: POST /users/auth/login
+Returns: Bearer Token
+2. Event Service (Tickets)
+List Seats: GET /events/{eventId}/seats
+Reserve Ticket: POST /events/seats/{seatId}/reserve?userId={id}
+Header: Authorization: Bearer <YOUR_TOKEN>
+📊 Monitoring & Dashboards
+Tool	URL	Credentials
+Eureka Dashboard	http://localhost:8761	-
+Grafana	http://localhost:3000	admin / admin
+Prometheus	http://localhost:9090	-
+Zipkin	http://localhost:9411	-
+(Note: For Kubernetes, you may need to use kubectl port-forward to access these dashboards locally).
+🔄 CI/CD Pipeline
+This project uses GitHub Actions for automation.
+Trigger: Push to main branch.
+Build: Maven builds the JAR files.
+Dockerize: Builds Docker images.
+Push: Pushes images to Docker Hub (kadirkara22/ticket-*).
