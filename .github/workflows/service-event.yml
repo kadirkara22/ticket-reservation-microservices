@@ -1,0 +1,14 @@
+name: Event Service CI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'event-service/**' # <--- SADECE BU KLASÖR DEĞİŞİRSE ÇALIŞ
+
+jobs:
+  call-workflow:
+    uses: ./.github/workflows/ci-template.yml
+    with:
+      service_name: event-service
+    secrets: inherit # Sırları (Şifreleri) şablona aktar

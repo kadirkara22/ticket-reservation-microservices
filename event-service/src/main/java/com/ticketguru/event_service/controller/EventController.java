@@ -32,6 +32,6 @@ public class EventController {
         log.info("📢 Gelen Header (TraceParent): {}", traceParent);
 
         String result = seatService.reserveSeat(seatId, userId);
-        return ResponseEntity.ok(result + " (SÜRÜM 2 - CI/CD BAŞARILI 🚀)");
+        return ResponseEntity.ok(result + " (SÜRÜM 3 - SMART CI/CD BAŞARILI 🚀)");
     }
 }

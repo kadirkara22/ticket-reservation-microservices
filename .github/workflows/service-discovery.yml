@@ -1,0 +1,14 @@
+name: Discovery Server CI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'discovery-server/**'
+
+jobs:
+  call-workflow:
+    uses: ./.github/workflows/ci-template.yml
+    with:
+      service_name: discovery-server
+    secrets: inherit

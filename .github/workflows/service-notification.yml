@@ -1,0 +1,14 @@
+name: Notification Service CI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'notification-service/**'
+
+jobs:
+  call-workflow:
+    uses: ./.github/workflows/ci-template.yml
+    with:
+      service_name: notification-service
+    secrets: inherit

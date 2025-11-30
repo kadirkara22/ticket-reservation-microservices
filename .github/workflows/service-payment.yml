@@ -1,0 +1,14 @@
+name: Payment Service CI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'payment-service/**'
+
+jobs:
+  call-workflow:
+    uses: ./.github/workflows/ci-template.yml
+    with:
+      service_name: payment-service
+    secrets: inherit

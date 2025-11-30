@@ -1,0 +1,14 @@
+name: API Gateway CI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'api-gateway/**'
+
+jobs:
+  call-workflow:
+    uses: ./.github/workflows/ci-template.yml
+    with:
+      service_name: api-gateway
+    secrets: inherit
