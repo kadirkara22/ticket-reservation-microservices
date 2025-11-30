@@ -66,8 +66,8 @@ public class ReservationEventListener {
 
             // Ödeme Simülasyonu (%50 şans)
             // (Testlerde kolay hata görmek için bu oranı değiştirebilirsin)
-           // boolean isPaymentSuccessful = random.nextInt(100) < 50;
-            boolean isPaymentSuccessful = true;
+             boolean isPaymentSuccessful = random.nextInt(100) < 10;
+            //boolean isPaymentSuccessful = true;
 
             if (isPaymentSuccessful) {
                 // BAŞARILI DURUM
