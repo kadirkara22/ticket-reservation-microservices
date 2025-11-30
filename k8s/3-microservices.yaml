@@ -167,6 +167,18 @@ spec:
               value: "kafka:9092"
             - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
               value: "http://discovery-server:8761/eureka/"
+
+            - name: SPRING_MAIL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mail-credentials
+                  key: mail-username
+
+            - name: SPRING_MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mail-credentials
+                  key: mail-password
 ---
 apiVersion: v1
 kind: Service

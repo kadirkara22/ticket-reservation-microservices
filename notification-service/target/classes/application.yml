@@ -8,8 +8,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: kadirkar2204@gmail.com
-    password: mtit dmaa jyit gvow
+    username: ${SPRING_MAIL_USERNAME}
+    password: ${SPRING_MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -20,7 +20,7 @@ spring:
 
   kafka:
     consumer:
-      bootstrap-servers: localhost:9092
+      bootstrap-servers: kafka:9092
       group-id: notification-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
