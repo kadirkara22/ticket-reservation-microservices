@@ -82,21 +82,60 @@ graph TD
 **1. Start Minikube:**
 ```bash
 minikube start --driver=docker --memory=6144 --cpus=4
-
+```
 **2. Create Secrets:**
 ```bash
 kubectl create secret generic mail-credentials \
   --from-literal=mail-username='your-email@gmail.com' \
   --from-literal=mail-password='your-app-password'
-
+```
 **3. Deploy System:**
 ```bash
 kubectl apply -f k8s/
-
+```
 **4. Expose Gateway:**
 ```bash
 sudo minikube tunnel
-
+```
 ### Option 2: Run with Docker Compose (Local Dev)
 ```bash
 docker-compose up -d
+```
+
+## 📡 API Endpoints
+
+**Base URL:** `http://localhost` (via Kubernetes Gateway)
+
+### 1. User Service (Auth)
+
+*   **Register:** `POST /users/auth/register`
+    ```json
+    { 
+      "username": "user", 
+      "email": "user@test.com", 
+      "password": "password" 
+    }
+    ```
+
+*   **Login:** `POST /users/auth/login`
+    *   *Returns:* `Bearer Token`
+
+### 2. Event Service (Tickets)
+
+*   **List Seats:** `GET /events/{eventId}/seats`
+
+*   **Reserve Ticket:** `POST /events/seats/{seatId}/reserve?userId={id}`
+    *   *Header:* `Authorization: Bearer <YOUR_TOKEN>`
+
+---
+
+## 📊 Monitoring & Dashboards
+
+| Tool | URL | Credentials |
+| :--- | :--- | :--- |
+| **Eureka Dashboard** | `http://localhost:8761` | - |
+| **Grafana** | `http://localhost:3000` | `admin` / `admin` |
+| **Prometheus** | `http://localhost:9090` | - |
+| **Zipkin** | `http://localhost:9411` | - |
+
+*(Note: For Kubernetes, use `kubectl port-forward` to access dashboards locally).*
