@@ -101,7 +101,7 @@ sudo minikube tunnel
 ```bash
 docker-compose up -d
 ```
-
+---
 ## 📡 API Endpoints
 
 **Base URL:** `http://localhost` (via Kubernetes Gateway)
