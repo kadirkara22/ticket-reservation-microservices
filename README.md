@@ -7,13 +7,10 @@
 ![License](https://img.shields.io/badge/License-MIT-lightgrey?style=for-the-badge)
 
 A highly scalable, **Event-Driven Microservices** application built with **Spring Boot 3** and **Kubernetes**.
-This project demonstrates advanced patterns like **SAGA (Choreography)**, **Distributed Locking (Redis)**, **Resilience (Circuit Breaker)**, and **Observability**.
 
 ---
 
 ## 🏛️ Architecture Overview
-
-The system follows a microservices architecture where each service has its own database (**Database per Service** pattern) and communicates asynchronously via **Kafka**.
 
 ```mermaid
 graph TD
@@ -40,7 +37,7 @@ graph TD
         Grafana -->|Visualize| Prometheus
         Zipkin -->|Distributed Tracing| Gateway & EventSvc
     end
-```   
+<br>
 🚀 Key Features & Patterns
 Feature	Technology / Pattern	Description
 Service Discovery	Netflix Eureka	Dynamic service registration and discovery.
@@ -122,4 +119,3 @@ Dockerize: Builds Docker images.
 Push: Pushes images to Docker Hub (kadirkara22/ticket-*).
 👨‍💻 Author
 Kadir Kara - Cloud-Native Backend Engineer
-GitHub Profile
